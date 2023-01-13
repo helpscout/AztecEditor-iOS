@@ -784,6 +784,9 @@ open class TextView: UITextView {
     ///
     public func getHTML(prettify: Bool = true) -> String {
         return storage.getHTML(prettify: prettify)
+            .replacingOccurrences(of: String(.paragraphSeparator), with: "<br>")
+            .replacingOccurrences(of: String(.carriageReturn), with: "<br>")
+            .replacingOccurrences(of: "\n", with: "<br>")
     }
     
     /// Loads the specified HTML into the editor, and records a new undo step,

@@ -135,6 +135,10 @@ extension NSAttributedString {
         return finalRange
     }
     
+    func htmlReadyParagraphRanges(intersecting range: NSRange) -> [ParagraphRange] {
+        return [(rangeOfEntireString, rangeOfEntireString)]
+    }
+    
     // MARK: - Paragraph Ranges: Enumeration
     
     /// Enumerates the paragraph ranges after the specified paragraph range.
@@ -188,6 +192,14 @@ extension NSAttributedString {
         if reverseOrder {
             ranges.reverse()
         }
+        
+        for (range, enclosingRange) in ranges {
+            block(range, enclosingRange)
+        }
+    }
+    
+    func enumerateHTMLReadyParagraphRanges(using block: ((NSRange, NSRange) -> Void)) {
+        let ranges = htmlReadyParagraphRanges(intersecting: rangeOfEntireString)
         
         for (range, enclosingRange) in ranges {
             block(range, enclosingRange)

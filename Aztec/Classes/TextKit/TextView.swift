@@ -689,6 +689,7 @@ open class TextView: UITextView {
         typingAttributes[.attachment] = nil
 
         guard !ensureRemovalOfParagraphAttributesWhenPressingEnterInAnEmptyParagraph(input: text) else {
+            formattingDelegate?.textViewCommandToggledAStyle()
             return
         }
 

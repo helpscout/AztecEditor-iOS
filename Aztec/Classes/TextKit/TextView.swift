@@ -1777,7 +1777,7 @@ open class TextView: UITextView {
     ///
     func adjustedIndex(_ index: Int) -> Int {
         let index = maxIndex(index)
-        return max(0, index - 1)
+        return max(0, index)
     }
 
 

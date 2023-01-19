@@ -136,7 +136,44 @@ extension NSAttributedString {
     }
     
     func htmlReadyParagraphRanges(intersecting range: NSRange) -> [ParagraphRange] {
-        return [(rangeOfEntireString, rangeOfEntireString)]
+        var listAndQuoteRanges = paragraphRanges(intersecting: rangeOfEntireString).filter { (range, enclosingRange) in
+            guard let paragraphStyle = self.attribute(.paragraphStyle, at: range.lowerBound, effectiveRange: nil) as? ParagraphStyle else { return false }
+            return paragraphStyle.hasProperty(where: { type(of: $0) != HTMLParagraph.self })
+        }
+        
+        if listAndQuoteRanges.isEmpty {
+            return [(rangeOfEntireString, rangeOfEntireString)]
+        } else {
+            var paragraphRanges: [ParagraphRange] = []
+            
+            let firstRange = listAndQuoteRanges.removeFirst()
+            if firstRange.rangeIncludingParagraphSeparator.location == rangeOfEntireString.location {
+                paragraphRanges.append(firstRange)
+            } else {
+                let range = NSRange(location: rangeOfEntireString.location, length: firstRange.rangeIncludingParagraphSeparator.location)
+                paragraphRanges.append((range, range))
+            }
+            
+            while !listAndQuoteRanges.isEmpty {
+                let listRange = listAndQuoteRanges.removeFirst()
+                let lastParagraphRange = paragraphRanges.last!.rangeIncludingParagraphSeparator
+                if lastParagraphRange.upperBound != listRange.rangeIncludingParagraphSeparator.location {
+                    let range = NSRange(location: lastParagraphRange.upperBound,
+                                        length: listRange.rangeIncludingParagraphSeparator.lowerBound - lastParagraphRange.upperBound)
+                    paragraphRanges.append((range, range))
+                }
+                paragraphRanges.append(listRange)
+            }
+
+            let lastParagraphRange = paragraphRanges.last!.rangeIncludingParagraphSeparator
+            if lastParagraphRange.upperBound != rangeOfEntireString.upperBound {
+                let range = NSRange(location: lastParagraphRange.upperBound,
+                                    length: rangeOfEntireString.upperBound - lastParagraphRange.upperBound)
+                paragraphRanges.append((range, range))
+            }
+            
+            return paragraphRanges
+        }
     }
     
     // MARK: - Paragraph Ranges: Enumeration

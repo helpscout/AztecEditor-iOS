@@ -807,7 +807,7 @@ open class TextView: UITextView {
             .replacingOccurrences(of: "</p>", with: "")
             .replacingOccurrences(of: "\n", with: "<br>")
         
-        return html
+        return "<p>" + html + "</p>"
     }
     
     /// Loads the specified HTML into the editor, and records a new undo step,

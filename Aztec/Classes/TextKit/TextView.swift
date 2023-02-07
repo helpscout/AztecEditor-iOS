@@ -784,30 +784,7 @@ open class TextView: UITextView {
     /// - Returns: The HTML version of the current Attributed String.
     ///
     public func getHTML(prettify: Bool = true) -> String {
-        let html = storage.getHTML(prettify: prettify)
-            .replacingOccurrences(of: String(.paragraphSeparator), with: "<br>")
-            .replacingOccurrences(of: String(.carriageReturn), with: "<br>")
-            .replacingOccurrences(of: "\n<ul>", with: "<ul>")
-            .replacingOccurrences(of: "<ul>\n", with: "<ul>")
-            .replacingOccurrences(of: "</ul>\n", with: "</ul>")
-            .replacingOccurrences(of: "\n</ul>", with: "</ul>")
-            .replacingOccurrences(of: "<ol>\n", with: "<ol>")
-            .replacingOccurrences(of: "</ol>\n", with: "</ol>")
-            .replacingOccurrences(of: "\n<ol>", with: "<ol>")
-            .replacingOccurrences(of: "\n</ol>", with: "</ol>")
-            .replacingOccurrences(of: "<li>\n", with: "<li>")
-            .replacingOccurrences(of: "</li>\n", with: "</li>")
-            .replacingOccurrences(of: "\n<li>", with: "<li>")
-            .replacingOccurrences(of: "\n</li>", with: "</li>")
-            .replacingOccurrences(of: "<blockquote>\n", with: "<blockquote>")
-            .replacingOccurrences(of: "</blockquote>\n", with: "</blockquote>")
-            .replacingOccurrences(of: "\n<blockquote>", with: "<blockquote>")
-            .replacingOccurrences(of: "\n</blockquote>", with: "</blockquote>")
-            .replacingOccurrences(of: "<p>", with: "")
-            .replacingOccurrences(of: "</p>", with: "")
-            .replacingOccurrences(of: "\n", with: "<br>")
-        
-        return "<p>" + html + "</p>"
+        storage.getHTML(prettify: prettify)
     }
     
     /// Loads the specified HTML into the editor, and records a new undo step,

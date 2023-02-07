@@ -70,7 +70,7 @@ class AttributedStringParser {
             }
         }
         
-        attrString.enumerateHTMLReadyParagraphRanges { paragraphRange, enclosingRange in
+        attrString.enumerateParagraphRanges(spanning: attrString.rangeOfEntireString) { (paragraphRange, enclosingRange) in
             let attributes = attrString.attributes(at: paragraphRange.location, effectiveRange: nil)
             let paragraphStyle = attributes.paragraphStyle()
             let styleNodes = createNodes(from: attrString, paragraphRange: paragraphRange, enclosingRange: enclosingRange)

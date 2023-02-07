@@ -39,7 +39,7 @@ public extension String {
     /// - Returns: the requested `UTF16 NSRange`
     ///
     func utf16NSRange(from nsRange: NSRange) -> NSRange {
-        let swiftRange = range(from: nsRange)
+        guard let swiftRange = range(from: nsRange) else { return NSRange(location: NSNotFound, length: 0) }
         let utf16NSRange = self.utf16NSRange(from: swiftRange)
 
         return utf16NSRange
@@ -52,11 +52,8 @@ public extension String {
     ///
     /// - Returns: the requested `Range<String.Index>`
     ///
-    func range(from nsRange: NSRange) -> Range<String.Index> {
-        let lowerBound = index(startIndex, offsetBy: nsRange.location)
-        let upperBound = index(lowerBound, offsetBy: nsRange.length)
-
-        return lowerBound ..< upperBound
+    func range(from nsRange: NSRange) -> Range<String.Index>? {
+        Range(nsRange, in: self)
     }
 
     func range(fromUTF16NSRange utf16NSRange: NSRange) -> Range<String.Index> {

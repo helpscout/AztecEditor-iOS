@@ -39,7 +39,7 @@ public extension String {
     /// - Returns: the requested `UTF16 NSRange`
     ///
     func utf16NSRange(from nsRange: NSRange) -> NSRange {
-        guard let swiftRange = range(from: nsRange) else { return NSRange(location: NSNotFound, length: 0) }
+        let swiftRange = range(from: nsRange)
         let utf16NSRange = self.utf16NSRange(from: swiftRange)
 
         return utf16NSRange
@@ -52,8 +52,11 @@ public extension String {
     ///
     /// - Returns: the requested `Range<String.Index>`
     ///
-    func range(from nsRange: NSRange) -> Range<String.Index>? {
-        Range(nsRange, in: self)
+    func range(from nsRange: NSRange) -> Range<String.Index> {
+        let lowerBound = index(startIndex, offsetBy: nsRange.location)
+        let upperBound = index(lowerBound, offsetBy: nsRange.length)
+
+        return lowerBound ..< upperBound
     }
 
     func range(fromUTF16NSRange utf16NSRange: NSRange) -> Range<String.Index> {
@@ -86,6 +89,10 @@ public extension String {
     ///
     private func findValidLowerBound(for utf16Range: Range<String.UTF16View.Index>) -> String.Index {
 
+        guard isValidRange(utf16Range) else {
+            return String.UTF16View.Index(utf16Offset: 0, in: self)
+        }
+
         guard self.utf16.count >= utf16Range.lowerBound.utf16Offset(in: self) else {
             return String.UTF16View.Index(utf16Offset: 0, in: self)
         }
@@ -102,6 +109,10 @@ public extension String {
     /// - Returns: A valid upper bound represented as a `String.Index`
     ///
     private func findValidUpperBound(for utf16Range: Range<String.UTF16View.Index>) -> String.Index {
+
+        guard isValidRange(utf16Range) else {
+            return String.Index(utf16Offset: self.utf16.count, in: self)
+        }
 
         guard self.utf16.count >= utf16Range.upperBound.utf16Offset(in: self) else {
             return String.Index(utf16Offset: self.utf16.count, in: self)
@@ -238,29 +249,12 @@ public extension String {
 
         return startIndex ..< endIndex
     }
-    
-    func index<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
-        range(of: string, options: options)?.lowerBound
+
+    func isValidRange(_ range: Range<String.UTF16View.Index>) -> Bool {
+        isValidIndex(range.lowerBound) && isValidIndex(range.upperBound)
     }
-    
-    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
-        range(of: string, options: options)?.upperBound
-    }
-    
-    func indices<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Index] {
-        ranges(of: string, options: options).map(\.lowerBound)
-    }
-    
-    func ranges<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Range<Index>] {
-        var result: [Range<Index>] = []
-        var startIndex = self.startIndex
-        while startIndex < endIndex,
-            let range = self[startIndex...]
-                .range(of: string, options: options) {
-                result.append(range)
-                startIndex = range.lowerBound < range.upperBound ? range.upperBound :
-                    index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
-        }
-        return result
+
+    func isValidIndex(_ index: String.UTF16View.Index) -> Bool {
+        (self.startIndex ..< self.endIndex).contains(index)
     }
 }

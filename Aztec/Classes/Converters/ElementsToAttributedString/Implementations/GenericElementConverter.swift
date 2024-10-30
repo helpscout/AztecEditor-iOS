@@ -11,7 +11,7 @@ class GenericElementConverter: ElementConverter {
     /// At some point we should modify how the conversion works, so that any supported element never goes through this
     /// converter at all, and this converter is turned into an `UnsupportedElementConverter()` exclusively.
     ///
-    private static let supportedElements: [Element] = [.a, .aztecRootNode, .b, .br, .blockquote, .del, .div, .em, .figure, .figcaption, .h1, .h2, .h3, .h4, .h5, .h6, .hr, .i, .img, .li, .ol, .p, .pre, .s, .span, .strike, .strong, .u, .ul, .video, .code, .sup, .sub, .mark]
+    private static let supportedElements: [Element] = [.a, .aztecRootNode, .b, .br, .blockquote, .del, .div, .em, .figure, .figcaption, .h1, .h2, .h3, .h4, .h5, .h6, .hr, .i, .img, .li, .ol, .p, .pre, .s, .span, .strike, .strong, .u, .ul, .video, .code, .sup, .sub, .mark, .small]
     
     // MARK: - Built-in formatter instances
     
@@ -37,7 +37,8 @@ class GenericElementConverter: ElementConverter {
     lazy var superscriptFormatter = SuperscriptFormatter()
     lazy var subscriptFormatter = SubscriptFormatter()
     lazy var markFormatter = MarkFormatter()
-    
+    lazy var smallFormatter = SmallFormatter()
+
     public lazy var elementFormattersMap: [Element: AttributeFormatter] = {
         return [
             .blockquote: self.blockquoteFormatter,
@@ -62,6 +63,7 @@ class GenericElementConverter: ElementConverter {
             .sup: self.superscriptFormatter,
             .sub: self.subscriptFormatter,
             .mark: self.markFormatter,
+            .small: self.smallFormatter
         ]
     }()
     

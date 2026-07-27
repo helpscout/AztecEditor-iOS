@@ -200,8 +200,12 @@ public extension String {
         return NSRange(location: count, length: 0)
     }
 
+    /// - Note: `limitedBy:` only constrains movement in the direction of travel, so a negative offset
+    ///     walks backwards past `startIndex` and traps. Reject those up front.
+    ///
     func indexFromLocation(_ location: Int) -> String.Index? {
         guard
+            location >= 0,
             let unicodeLocation = utf16.index(utf16.startIndex, offsetBy: location, limitedBy: utf16.endIndex),
             let location = unicodeLocation.samePosition(in: self) else {
                 return nil

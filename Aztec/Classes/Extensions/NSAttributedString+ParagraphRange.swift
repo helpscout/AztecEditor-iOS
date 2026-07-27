@@ -22,7 +22,7 @@ extension NSAttributedString {
     ///
     func paragraphRanges(intersecting range: NSRange, includeParagraphSeparator: Bool = true) -> [NSRange] {
         var paragraphRanges = [NSRange]()
-        let paragraphsRange = foundationString.paragraphRange(for: range)
+        let paragraphsRange = paragraphRange(for: range)
 
         foundationString.enumerateSubstrings(in: paragraphsRange, options: .byParagraphs) { (substring, substringRange, enclosingRange, stop) in
             let paragraphRange = includeParagraphSeparator ? enclosingRange : substringRange
@@ -43,7 +43,7 @@ extension NSAttributedString {
     ///
     func paragraphRanges(intersecting range: NSRange) -> ([ParagraphRange]) {
         var paragraphRanges = [ParagraphRange]()
-        let paragraphsRange = foundationString.paragraphRange(for: range)
+        let paragraphsRange = paragraphRange(for: range)
 
         foundationString.enumerateSubstrings(in: paragraphsRange, options: .byParagraphs) { (substring, substringRange, enclosingRange, stop) in
             paragraphRanges.append((substringRange, enclosingRange))
@@ -56,8 +56,14 @@ extension NSAttributedString {
     ///
     /// This is an attributed string wrapper for `NSString.paragraphRangeForRange()`
     ///
+    /// - Note: `NSString.paragraphRange(for:)` raises for an out-of-bounds range, so we clamp and assert
+    ///     rather than crash a shipping app.
+    ///
     func paragraphRange(for range: NSRange) -> NSRange {
-        return foundationString.paragraphRange(for: range)
+        let safeRange = range.clamped(to: length)
+        assert(safeRange == range, "paragraphRange(for:) got \(range), out of bounds for length \(length).")
+
+        return foundationString.paragraphRange(for: safeRange)
     }
     
     func paragraphRange(for attachment: NSTextAttachment) -> NSRange {

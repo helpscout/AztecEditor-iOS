@@ -69,11 +69,10 @@ open class HTMLStorage: NSTextStorage {
         return textStoreString
     }
     
-    private func replaceTextStoreString(_ range: NSRange, with string: String) {
-        let utf16String = textStoreString.utf16
-        let startIndex = utf16String.index(utf16String.startIndex, offsetBy: range.location)
-        let endIndex = utf16String.index(startIndex, offsetBy: range.length)
-        textStoreString.replaceSubrange(startIndex..<endIndex, with: string)
+    /// See `TextStorage.syncTextStoreString()` for why the edit is not applied to the mirror directly.
+    ///
+    private func syncTextStoreString() {
+        textStoreString = textStore.string
     }
 
     override open func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedString.Key : Any] {
@@ -97,7 +96,7 @@ open class HTMLStorage: NSTextStorage {
         beginEditing()
 
         textStore.replaceCharacters(in: range, with: str)
-        replaceTextStoreString(range, with: str)
+        syncTextStoreString()
         
         edited([.editedAttributes, .editedCharacters], range: range, changeInLength: str.utf16.count - range.length)
         
@@ -109,7 +108,7 @@ open class HTMLStorage: NSTextStorage {
         beginEditing()
 
         textStore.replaceCharacters(in: range, with: attrString)
-        replaceTextStoreString(range, with: attrString.string)
+        syncTextStoreString()
         
         edited([.editedAttributes, .editedCharacters], range: range, changeInLength: attrString.length - range.length)
         

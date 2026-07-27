@@ -89,4 +89,18 @@ class StringParagraphTests: XCTestCase {
 
         XCTAssertTrue(sample.isEmptyParagraph(at: sample.count))
     }
+
+    /// Verifies that isEmptyParagraph(at:) returns false for offsets that are not valid positions.
+    ///
+    /// Reporting true used to send callers into paragraph handling with an out-of-bounds offset, which
+    /// traps inside NSString's paragraph APIs.
+    ///
+    func testIsEmptyParagraphReturnsFalseForInvalidOffsets() {
+        XCTAssertFalse("Sample".isEmptyParagraph(at: 99))
+        XCTAssertFalse("".isEmptyParagraph(at: 1))
+        XCTAssertFalse("Sample".isEmptyParagraph(at: -1))
+
+        // Offset 1 lands between the two halves of the surrogate pair.
+        XCTAssertFalse("😀".isEmptyParagraph(at: 1))
+    }
 }

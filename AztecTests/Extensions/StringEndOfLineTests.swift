@@ -205,4 +205,14 @@ class StringEndOfLineTests: XCTestCase {
             XCTAssertFalse(string.isStartOfNewLine(at: index))
         }
     }
+
+    /// Verifies that isEmptyLine(at:) returns false for offsets that are not valid positions.
+    ///
+    func testIsEmptyLineReturnsFalseForInvalidOffsets() {
+        XCTAssertFalse("Hello".isEmptyLine(at: 99))
+        XCTAssertFalse("".isEmptyLine(at: 1))
+
+        // Offset 1 lands between the two halves of the surrogate pair.
+        XCTAssertFalse("😀".isEmptyLine(at: 1))
+    }
 }

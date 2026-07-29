@@ -660,4 +660,73 @@ class TextStorageTests: XCTestCase {
         XCTAssertEqual(storage.string, "Hello I'm a text highlighted")
         XCTAssertEqual(originalAttributes.keys, finalAttributes.keys)
     }
+
+
+    // MARK: - UTF-16 / plain-string mirror consistency
+
+    func testReplaceCharactersSplittingASurrogatePairKeepsTheStringMirrorInSync() {
+        storage.replaceCharacters(in: NSRange(location: 0, length: 0), with: "a😀b")
+        XCTAssertEqual(storage.length, 4)
+
+        // Removes only the leading surrogate of the emoji.
+        storage.replaceCharacters(in: NSRange(location: 1, length: 1), with: "")
+
+        XCTAssertEqual(storage.length, 3)
+    }
+
+    func testReplaceCharactersSplittingASurrogatePairInsideAZWJSequenceKeepsTheStringMirrorInSync() {
+        storage.replaceCharacters(in: NSRange(location: 0, length: 0), with: "a👨‍👩‍👧‍👦b")
+
+        let originalLength = storage.length
+        XCTAssertEqual(originalLength, 13)
+
+        // UTF-16 offsets 3..<5 are the ZWJ plus the leading surrogate of the second emoji.
+        storage.replaceCharacters(in: NSRange(location: 3, length: 2), with: "X")
+
+        XCTAssertEqual(storage.length, originalLength - 1)
+
+        // `attributes(at:)` reads the attributed store while `length` comes from the mirror, so this
+        // walk is what raises NSRangeException once the two disagree.
+        for location in 0 ..< storage.length {
+            XCTAssertNotNil(storage.attributes(at: location, effectiveRange: nil))
+        }
+    }
+
+    func testReplaceCharactersWithStringContainingEmoji() {
+        let expected = "The 🌎 goes 🔄 and 🔄!"
+
+        storage.replaceCharacters(in: NSRange(location: 0, length: 0), with: "The 🌎 goes round and round!")
+        storage.replaceCharacters(in: NSRange(location: 22, length: 5), with: "🔄")
+        storage.replaceCharacters(in: NSRange(location: 12, length: 5), with: "🔄")
+
+        XCTAssertEqual(storage.string, expected)
+        XCTAssertEqual(storage.length, (expected as NSString).length)
+    }
+
+    func testAccumulatedChangeInLengthMatchesStorageLength() {
+        let recorder = EditingRecorder()
+        storage.delegate = recorder
+
+        storage.replaceCharacters(in: NSRange(location: 0, length: 0), with: "😀")
+        storage.replaceCharacters(in: NSRange(location: 2, length: 0), with: " ok")
+        storage.replaceCharacters(in: NSRange(location: 0, length: 2), with: "")
+
+        // The storage started out empty, so every delta the layout managers were told about must add
+        // up to the final length.
+        XCTAssertEqual(recorder.deltas.reduce(0, +), storage.length)
+        XCTAssertEqual(storage.length, 3)
+    }
+}
+
+
+private final class EditingRecorder: NSObject, NSTextStorageDelegate {
+
+    private(set) var deltas = [Int]()
+
+    func textStorage(_ textStorage: NSTextStorage,
+                     didProcessEditing editedMask: NSTextStorage.EditActions,
+                     range editedRange: NSRange,
+                     changeInLength delta: Int) {
+        deltas.append(delta)
+    }
 }

@@ -18,11 +18,12 @@ extension String {
     /// - Parameters:
     ///     - offset: the receiver's offset to check
     ///
-    /// - Returns: `true` if the specified offset is in an empty line, `false` otherwise.
+    /// - Returns: `true` if the specified offset is in an empty line, `false` otherwise or if the offset
+    ///     is not a valid position in the receiver.
     ///
     public func isEmptyLine(at offset: Int) -> Bool {
         guard let index = self.indexFromLocation(offset) else {
-            return true
+            return false
         }
         
         return isEmptyLine(at: index)

@@ -35,6 +35,15 @@ extension NSRange {
         return location + length
     }
 
+    /// Returns the receiver constrained to `0 ..< length`.
+    ///
+    func clamped(to upperBound: Int) -> NSRange {
+        let location = min(max(self.location, 0), upperBound)
+        let maxLength = max(upperBound - location, 0)
+
+        return NSRange(location: location, length: min(max(length, 0), maxLength))
+    }
+
     /// Returns a range equal to the receiver extended to its right side by the specified addition
     /// value.
     ///

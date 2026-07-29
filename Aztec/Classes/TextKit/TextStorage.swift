@@ -311,13 +311,18 @@ open class TextStorage: NSTextStorage {
         return textStore.attributes(at: location, effectiveRange: range)
     }
 
-    private func replaceTextStoreString(_ range: NSRange, with string: String) {
-        let utf16String = textStoreString.utf16
-        let startIndex = utf16String.index(utf16String.startIndex, offsetBy: range.location)
-        let endIndex = utf16String.index(startIndex, offsetBy: range.length)
-        textStoreString.replaceSubrange(startIndex..<endIndex, with: string)
+    /// Refreshes the plain-string mirror returned by `string`, which must match `textStore` exactly:
+    /// `length` is derived from the mirror while `attributes(at:)` reads `textStore`.
+    ///
+    /// Applying the edit to the mirror separately instead would not be equivalent. `String.replaceSubrange`
+    /// rounds its bounds to Unicode scalar boundaries, so when an `NSRange` splits a surrogate pair it
+    /// covers different code units than `NSMutableAttributedString.replaceCharacters(in:with:)` just did,
+    /// and the two stores diverge for good.
+    ///
+    private func syncTextStoreString() {
+        textStoreString = textStore.string
     }
- 
+
     override open func replaceCharacters(in range: NSRange, with str: String) {
 
         beginEditing()
@@ -325,9 +330,9 @@ open class TextStorage: NSTextStorage {
         detectAttachmentRemoved(in: range)
         textStore.replaceCharacters(in: range, with: str)
 
-        replaceTextStoreString(range, with: str)
+        syncTextStoreString()
 
-        edited(.editedCharacters, range: range, changeInLength: str.count - range.length)
+        edited(.editedCharacters, range: range, changeInLength: str.utf16.count - range.length)
         
         endEditing()
     }
@@ -343,9 +348,9 @@ open class TextStorage: NSTextStorage {
         let markFormattedString = preprocessMarkForInsertion(preprocessedString, range)
 
         textStore.replaceCharacters(in: range, with: markFormattedString)
-        replaceTextStoreString(range, with: attrString.string)
+        syncTextStoreString()
 
-        edited([.editedAttributes, .editedCharacters], range: range, changeInLength: attrString.length - range.length)
+        edited([.editedAttributes, .editedCharacters], range: range, changeInLength: markFormattedString.length - range.length)
 
         endEditing()
     }
